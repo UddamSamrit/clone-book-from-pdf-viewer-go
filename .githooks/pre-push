@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Prevent pushing directly to main branch (except for owner)
+protected_branch='main'
+
+# Check if user is owner (set via: git config user.isOwner true)
+is_owner=$(git config user.isOwner 2>/dev/null)
+
+while read local_ref local_sha remote_ref remote_sha
+do
+    if [ "$remote_ref" = "refs/heads/$protected_branch" ]; then
+        if [ "$is_owner" != "true" ]; then
+            echo "❌ Error: Direct pushes to '$protected_branch' branch are not allowed!"
+            echo "Please create a feature branch and open a pull request instead."
+            echo ""
+            echo "If you are the repository owner, set: git config user.isOwner true"
+            exit 1
+        else
+            echo "✅ Owner push to main branch allowed"
+        fi
+    fi
+done
+
+exit 0

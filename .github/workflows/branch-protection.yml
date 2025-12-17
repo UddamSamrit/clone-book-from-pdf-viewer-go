@@ -1,0 +1,24 @@
+name: Branch Protection
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if push is from owner
+        run: |
+          # Get repository owner from GITHUB_REPOSITORY (format: owner/repo)
+          REPO_OWNER=$(echo "${{ github.repository }}" | cut -d'/' -f1)
+          PUSHER="${{ github.actor }}"
+          
+          if [ "$PUSHER" = "$REPO_OWNER" ]; then
+            echo "✅ Owner push to main branch allowed"
+          else
+            echo "⚠️ Direct pushes to main branch are not allowed for non-owners!"
+            echo "Please create a feature branch and open a pull request instead."
+            exit 1
+          fi

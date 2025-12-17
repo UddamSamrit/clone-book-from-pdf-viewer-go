@@ -16,6 +16,64 @@ git clone <repository-url>
 cd clone-book
 ```
 
+## Git Workflow
+
+**⚠️ Important: Do not push directly to `main` branch! (Repository owners can bypass this)**
+
+### Working with branches
+
+1. **Create a feature branch:**
+```bash
+git checkout -b feature/your-feature-name
+```
+
+2. **Make your changes and commit:**
+```bash
+git add .
+git commit -m "Your commit message"
+```
+
+3. **Push to your feature branch:**
+```bash
+git push origin feature/your-feature-name
+```
+
+4. **Create a Pull Request** on GitHub to merge into `main`
+
+### Prevent accidental pushes to main
+
+#### For Contributors (Non-Owners)
+
+**Option 1: Git config (recommended)**
+```bash
+git config branch.main.pushRemote no_push
+```
+
+**Option 2: Use pre-push hook**
+```bash
+# Install the pre-push hook
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-push
+```
+
+#### For Repository Owner
+
+**To allow owner to push directly to main:**
+
+1. **Local Git Hook (if using pre-push hook):**
+   ```bash
+   git config user.isOwner true
+   ```
+
+2. **GitHub Actions:** Automatically allows repository owner to push (no configuration needed)
+
+3. **GitHub Branch Protection Settings:**
+   - Go to Settings → Branches → Add rule for `main`
+   - Enable: "Require a pull request before merging"
+   - Enable: "Require approvals" (set to 1)
+   - **Important:** Leave "Do not allow bypassing" **UNCHECKED** to allow owner bypass
+   - Or add yourself to "Restrict who can push to matching branches" as an exception
+
 ### 2. Install Go (if not already installed)
 
 #### macOS
