@@ -1,0 +1,45 @@
+# Downloaded images directory
+images/
+
+# Generated PDF
+book.pdf
+*.pdf
+
+# Processed images
+*_processed.jpg
+
+# Binaries
+clone-book
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+*.out
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+._*
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
