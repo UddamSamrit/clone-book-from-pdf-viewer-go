@@ -100,16 +100,36 @@ go version
 
 ### Run the application
 
+**Option 1: Provide URL as argument**
+```bash
+go run main.go "https://www.elibraryofcambodia.org/ebooks/2015/07/chhbab-bros/#p=1"
+```
+
+**Option 2: Interactive mode (prompts for URL)**
 ```bash
 go run main.go
 ```
 
-Or build and run:
-
+**Option 3: Build and run**
 ```bash
 go build -o clone-book
-./clone-book
+./clone-book "https://www.elibraryofcambodia.org/ebooks/2015/07/chhbab-bros/#p=1"
 ```
+
+### URL Format
+
+The program accepts URLs with or without hash fragments:
+- `https://www.elibraryofcambodia.org/ebooks/2015/07/chhbab-bros/#p=1`
+- `https://www.elibraryofcambodia.org/ebooks/2015/07/chhbab-bros/`
+
+The hash fragment (`#p=1`) is automatically ignored - it's just for page navigation.
+
+### How it works
+
+1. **Auto-detects page range**: The program automatically finds the first and last page by testing URLs
+2. **Auto-detects image pattern**: Tries common patterns like `/files/mobile/`, `/pages/`, etc.
+3. **Downloads images**: Downloads all pages from the detected range
+4. **Creates PDF**: Generates a PDF book from all downloaded images
 
 ## What it does
 

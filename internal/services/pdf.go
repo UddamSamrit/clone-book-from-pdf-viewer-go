@@ -7,34 +7,52 @@ import (
 	"os"
 	"path/filepath"
 
-	"clone-book/internal/config"
-
 	"github.com/jung-kurt/gofpdf/v2"
 )
 
 // PDFService handles PDF creation operations
-type PDFService struct{}
+type PDFService struct {
+	bookInfo *BookInfo
+}
 
 // NewPDFService creates a new PDF service
 func NewPDFService() *PDFService {
 	return &PDFService{}
 }
 
+// SetBookInfo sets the book information for PDF creation
+func (pdf *PDFService) SetBookInfo(bookInfo *BookInfo) {
+	pdf.bookInfo = bookInfo
+}
+
 // CreateFromImages creates a PDF from all processed images
 func (pdf *PDFService) CreateFromImages() error {
+	if pdf.bookInfo == nil {
+		return fmt.Errorf("book info not set")
+	}
+
 	doc := gofpdf.New("P", "mm", "A4", "")
 	doc.SetAutoPageBreak(false, 0)
 
-	for i := config.StartPage; i <= config.EndPage; i++ {
+	startPage := pdf.bookInfo.StartPage
+	endPage := pdf.bookInfo.EndPage
+	totalPages := endPage - startPage + 1
+
+	addedCount := 0
+	skippedCount := 0
+
+	for i := startPage; i <= endPage; i++ {
 		imagePath, err := pdf.FindImagePath(i)
 		if err != nil {
 			fmt.Printf("Warning: Image %d not found, skipping\n", i)
+			skippedCount++
 			continue
 		}
 
 		width, height, err := pdf.GetImageDimensions(imagePath)
 		if err != nil {
 			log.Printf("Warning: Failed to get dimensions for %s: %v", imagePath, err)
+			skippedCount++
 			continue
 		}
 
@@ -42,18 +60,33 @@ func (pdf *PDFService) CreateFromImages() error {
 
 		doc.AddPage()
 		doc.ImageOptions(imagePath, x, y, displayWidth, displayHeight, false, gofpdf.ImageOptions{ImageType: "JPG", ReadDpi: true}, 0, "")
+		addedCount++
 
-		if i%50 == 0 {
-			fmt.Printf("Added %d/%d pages to PDF...\n", i, config.EndPage)
+		// Show progress every 50 pages or at completion
+		if addedCount%50 == 0 || i == endPage {
+			fmt.Printf("PDF Progress: %d/%d pages added (%.1f%%)\n", addedCount, totalPages, float64(addedCount)/float64(totalPages)*100)
 		}
 	}
 
-	return doc.OutputFileAndClose(config.OutputPDF)
+	if skippedCount > 0 {
+		fmt.Printf("\n⚠️  Warning: %d pages were skipped\n", skippedCount)
+	}
+
+	// Use book name for PDF filename
+	pdfFilename := pdf.bookInfo.BookName + ".pdf"
+
+	err := doc.OutputFileAndClose(pdfFilename)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("\n✅ PDF creation complete! %d pages added to PDF.\n", addedCount)
+	return nil
 }
 
 // FindImagePath finds the path to an original image
 func (pdf *PDFService) FindImagePath(pageNum int) (string, error) {
-	originalPath := filepath.Join(config.DownloadDir, fmt.Sprintf("%d.jpg", pageNum))
+	originalPath := filepath.Join(pdf.bookInfo.GetImageDir(), fmt.Sprintf("%d.jpg", pageNum))
 
 	// Use original image only
 	if _, err := os.Stat(originalPath); err == nil {
